@@ -1,0 +1,84 @@
+apply plugin: 'java'
+apply plugin: 'protobuf'
+
+group = 'ayizan'
+version = '0.1.0'
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+sourceSets {
+    benchmark.java.srcDir 'src/benchmark/java'
+}
+
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'ws.antonov.gradle.plugins:gradle-plugin-protobuf:0.7'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.lmax:disruptor:3.0.1',
+            'com.google.protobuf:protobuf-java:2.5.0'
+    testCompile 'junit:junit:4.11',
+            'org.hamcrest:hamcrest-all:1.3',
+            'org.mockito:mockito-all:1.9.5'
+    benchmarkCompile 'com.google.caliper:caliper:0.5-rc1',
+                     'junit:junit:4.11'
+}
+
+defaultTasks 'build'
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.5'
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+tasks.withType(Compile) {
+    options.compilerArgs << "-Xlint:unchecked"
+    options.debug = true
+    options.warnings = false
+}
+
+
+def benchmarkClassesDir = sourceSets.benchmark.output.classesDir
+def benchmarks = fileTree(dir: benchmarkClassesDir , include: '**/*Benchmark.class')
+def newBenchmark = { file ->
+    def type = file.name - 'Benchmark.class'
+    task("benchmark$type", type: JavaExec, dependsOn: ['classes', 'benchmarkClasses'], group: 'Benchmarks') {
+        def vmVer = System.getProperty('java.version')
+        def osName = System.getProperty('os.name').replaceAll('\\s','').toLowerCase()
+        def osArch = System.getProperty('os.arch')
+        def benchmarkDir = "${project.buildDir}/benchmark-results"
+        def benchmarkFile = "${type}_${version}_${osName}-${osArch}-jvm${vmVer}"
+
+        outputs.upToDateWhen { false }
+        main = file.toString() - (benchmarkClassesDir.toString() + '/') - '.class'
+        classpath = sourceSets.benchmark.runtimeClasspath + sourceSets.main.runtimeClasspath
+        args = ['--saveResults', "${benchmarkDir}/${benchmarkFile}.json", '-Jmode=-server']
+    }
+}
+benchmarks.each(newBenchmark)
+build.dependsOn benchmarkClasses
+
+
+compileBenchmarkJava {
+    classpath += sourceSets.main.runtimeClasspath
+}
+
+artifacts {
+    archives sourcesJar
+}
+

@@ -1,0 +1,12 @@
+package ayizan;
+option java_package = "ayizan.domain";
+option java_outer_classname = "Instruments";
+
+message InstrumentSpecification
+{
+    required string symbol = 1;
+
+    optional double multiplier = 2 [default = 1.0];
+    optional double tickSize = 3 [default = 1.0];
+    optional double lotSize = 4 [default = 1.0];
+}
