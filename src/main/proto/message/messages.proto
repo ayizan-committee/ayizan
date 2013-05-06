@@ -1,0 +1,21 @@
+package ayizan;
+option java_package = "ayizan.message";
+option java_outer_classname = "Messages";
+
+message Packet
+{
+    message Header
+    {
+        required string key = 1;
+        optional string value = 2;
+    }
+    required int64 id = 1;
+    required int32 schema = 2;
+    repeated Header header = 3;
+    optional bytes payload = 4;
+}
+
+message Frame
+{
+    repeated Packet packet = 1;
+}

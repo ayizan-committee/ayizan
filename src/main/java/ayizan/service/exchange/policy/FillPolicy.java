@@ -3,7 +3,7 @@ package ayizan.service.exchange.policy;
 import ayizan.domain.orderbook.Order;
 import ayizan.domain.orderbook.OrderBook;
 import ayizan.domain.orderbook.OrderBook.Matcher;
-import ayizan.service.exchange.ExecutionPublisher;
+import ayizan.service.exchange.Exchange.ExecutionPublisher;
 
 import java.util.Comparator;
 
@@ -67,7 +67,7 @@ public abstract class FillPolicy<T extends FillPolicy<T>>
                     final long tradeQuantity = min(aggressiveOrder.getWorkingQuantity(), passiveOrder.getWorkingQuantity());
                     passiveOrder.fill(tradeQuantity);
                     aggressiveOrder.fill(tradeQuantity);
-                    executionPublisher.publishTradeExecution(orderBook.commit(), aggressiveOrder, passiveOrder, tradePrice, tradeQuantity);
+                    executionPublisher.publishTradeExecution(orderBook.commit(), orderBook.getSymbol(), aggressiveOrder, passiveOrder, tradePrice, tradeQuantity);
                 }
                 return !aggressiveOrder.isCompleted();
             }

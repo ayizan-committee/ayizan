@@ -2,11 +2,13 @@ package ayizan.domain.orderbook;
 
 import ayizan.benchmark.Sequence;
 import ayizan.domain.Identifier;
+import ayizan.domain.Instruments.InstrumentSpecification;
 import ayizan.domain.Orders.Side;
 import ayizan.domain.Orders.TimeInForce;
 import ayizan.domain.Sides;
 import ayizan.domain.orderbook.OrderBook.Matcher;
 import ayizan.domain.orderbook.limit.LimitOrderBook;
+import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
 
@@ -18,6 +20,13 @@ import static ayizan.domain.StandardUnits.toTicks;
 public class OrderBookBenchmark extends SimpleBenchmark
 {
     private static final Identifier ID = new Identifier("1", 1);
+    private static final InstrumentSpecification INSTRUMENT = InstrumentSpecification.newBuilder().
+            setSymbol("XXX.GOOG").
+            setTickSize(0.01).
+            setLotSize(1).
+            setMultiplier(1).
+            build();
+
     private static final Matcher IGNORE_MATCHES = new Matcher()
     {
         @Override
@@ -27,6 +36,7 @@ public class OrderBookBenchmark extends SimpleBenchmark
         }
     };
 
+    @Param({"100", "1000000"}) private int size;
     private BenchmarkState benchmarkState;
 
     public static void main(String... arguments) throws Exception
@@ -40,20 +50,10 @@ public class OrderBookBenchmark extends SimpleBenchmark
         this.benchmarkState = new BenchmarkState();
     }
 
-    public void timeAcceptCancelWithOrders_100(final int iterations)
+    public void timeAcceptCancelWithOrders(final int iterations)
     {
-        final OrderBook orderBook = benchmarkState.getOrderBook(100);
+        final OrderBook orderBook = benchmarkState.getOrderBook(size);
         for(int i = iterations; i-- != 0;) {
-            final double price = benchmarkState.nextPrice();
-            final double quantity = benchmarkState.nextQuantity();
-            acceptCancel(orderBook, benchmarkState.sideForPrice(price), price, quantity);
-        }
-    }
-
-    public void timeAcceptCancelWithOrders_100000(final int iterations)
-    {
-        final OrderBook orderBook = benchmarkState.getOrderBook(100000);
-        for(int i = iterations; i-- !=0;) {
             final double price = benchmarkState.nextPrice();
             final double quantity = benchmarkState.nextQuantity();
             acceptCancel(orderBook, benchmarkState.sideForPrice(price), price, quantity);
@@ -73,7 +73,7 @@ public class OrderBookBenchmark extends SimpleBenchmark
 
     private static OrderBook setupOrderBook(final BenchmarkState benchmarkState, final int size)
     {
-        final OrderBook orderBook = new LimitOrderBook();
+        final OrderBook orderBook = new LimitOrderBook(INSTRUMENT);
         for(int i = 0; i < size; i++) {
             final double price = benchmarkState.nextPrice();
             final double quantity = benchmarkState.nextQuantity();
@@ -94,18 +94,25 @@ public class OrderBookBenchmark extends SimpleBenchmark
     private static class BenchmarkState
     {
 
-        private final Random randomNumberGenerator = new Random(0);
-        private final Sequence priceSequence = Sequence.gaussianSequence(randomNumberGenerator, 1000000);
-        private final Sequence quantitySequence = Sequence.uniformSequence(randomNumberGenerator, 1000000);
-        private final OrderBook[] orderBooks = new OrderBook[]
+        private final Random randomNumberGenerator;
+        private final Sequence priceSequence;
+        private final Sequence quantitySequence;
+        private final OrderBook[] orderBooks;
+
+        private BenchmarkState()
         {
-                setupOrderBook(this, 0),
-                setupOrderBook(this, 10),
-                setupOrderBook(this, 100),
-                setupOrderBook(this, 1000),
-                setupOrderBook(this, 10000),
-                setupOrderBook(this, 100000),
-        };
+            this.randomNumberGenerator = new Random(0);
+            this.priceSequence =  Sequence.gaussianSequence(randomNumberGenerator, 1000000);
+            this.quantitySequence = Sequence.gaussianSequence(randomNumberGenerator, 1000000);
+            this.orderBooks = new OrderBook[] {
+                    setupOrderBook(this, 0),
+                    setupOrderBook(this, 10),
+                    setupOrderBook(this, 100),
+                    setupOrderBook(this, 1000),
+                    setupOrderBook(this, 10000),
+                    setupOrderBook(this, 100000),
+            };
+        }
 
         public OrderBook getOrderBook(final int size)
         {

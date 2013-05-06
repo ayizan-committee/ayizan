@@ -1,0 +1,37 @@
+package ayizan;
+option java_package = "ayizan.message.exchange";
+option java_outer_classname = "Events";
+
+import "domain/executions.proto";
+import "message/exchange/dictionary.proto";
+
+message AcceptExecutionEvent
+{
+    required Type type = 1 [default = ACCEPT_EXECUTION_EVENT];
+    required AcceptExecution accept = 2;
+}
+
+message TradeExecutionEvent
+{
+    required Type type = 1 [default = TRADE_EXECUTION_EVENT];
+    required TradeExecution trade = 2;
+}
+
+message ReplaceExecutionEvent
+{
+    required Type type = 1 [default = REPLACE_EXECUTION_EVENT];
+    required ReplaceExecution replace = 2;
+}
+
+message CancelExecutionEvent
+{
+    required Type type = 1 [default = CANCEL_EXECUTION_EVENT];
+    required CancelExecution cancel = 2;
+}
+
+message StatusExecutionEvent
+{
+    required Type type = 1 [default = STATUS_EXECUTION_EVENT];
+    required StatusExecution status = 2;
+}
+

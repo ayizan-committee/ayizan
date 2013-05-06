@@ -1,0 +1,30 @@
+package ayizan;
+option java_package = "ayizan.message.exchange";
+option java_outer_classname = "Instructions";
+
+import "domain/orders.proto";
+import "message/exchange/dictionary.proto";
+
+message PlaceOrderInstruction
+{
+    required Type type = 1 [default = PLACE_ORDER_INSTRUCTION];
+    required PlaceOrderSpecification placeOrder = 2;
+}
+
+message CancelReplaceOrderInstruction
+{
+    required Type type = 1 [default = CANCEL_REPLACE_ORDER_INSTRUCTION];
+    required CancelReplaceOrderSpecification cancelReplaceOrder = 2;
+}
+
+message CancelOrderInstruction
+{
+    required Type type = 1 [default = CANCEL_ORDER_INSTRUCTION];
+    required CancelOrderSpecification cancelOrder = 2;
+}
+
+message OrderStatusInstruction
+{
+    required Type type = 1 [default = ORDER_STATUS_INSTRUCTION];
+    required OrderStatusSpecification orderStatus = 2;
+}

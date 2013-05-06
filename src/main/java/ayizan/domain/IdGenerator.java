@@ -1,4 +1,4 @@
-package ayizan.util;
+package ayizan.domain;
 
 public interface IdGenerator<T>
 {

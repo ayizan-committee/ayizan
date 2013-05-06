@@ -1,15 +1,14 @@
 package ayizan.test.matcher;
 
 import ayizan.domain.Identifier;
-import ayizan.domain.Orders.AcceptExecution;
-import ayizan.domain.Orders.CancelExecution;
-import ayizan.domain.Orders.Execution;
-import ayizan.domain.Orders.Execution.Type;
-import ayizan.domain.Orders.OrderState;
-import ayizan.domain.Orders.ReplaceExecution;
+import ayizan.domain.Executions.AcceptExecutionOrBuilder;
+import ayizan.domain.Executions.CancelExecutionOrBuilder;
+import ayizan.domain.Executions.OrderStateOrBuilder;
+import ayizan.domain.Executions.ReplaceExecutionOrBuilder;
+import ayizan.domain.Executions.StatusExecutionOrBuilder;
+import ayizan.domain.Executions.TradeExecutionOrBuilder;
 import ayizan.domain.Orders.Side;
 import ayizan.domain.Orders.TimeInForce;
-import ayizan.domain.Orders.TradeExecution;
 import ayizan.util.Builder;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -21,21 +20,14 @@ import static org.hamcrest.core.AllOf.allOf;
 public class ExecutionMatcher
 {
 
-    public static abstract class AbstractExecutionMatcherBuilder<T extends AbstractExecutionMatcherBuilder<T>> implements Builder<Matcher<Execution>>
+    public static abstract class AbstractExecutionMatcherBuilder<T extends AbstractExecutionMatcherBuilder<T>> implements Builder<Matcher<?>>
     {
-        protected String symbol;
         protected Side side;
         protected long price;
         protected long quantity;
         protected long filledQuantity;
         protected long workingQuantity;
         protected TimeInForce timeInForce;
-
-        public T setSymbol(final String symbol)
-        {
-            this.symbol = symbol;
-            return self();
-        }
 
         public T setSide(final Side side)
         {
@@ -80,16 +72,15 @@ public class ExecutionMatcher
         }
 
         @SuppressWarnings("unchecked")
-        protected Matcher<OrderState> buildOrderStateMatcher()
+        protected Matcher<OrderStateOrBuilder> buildOrderStateMatcher()
         {
-            return allOf(Matchers.<OrderState>hasProperty("orderId", notNullValue()),
-                         Matchers.<OrderState>hasProperty("symbol", equalTo(symbol)),
-                         Matchers.<OrderState>hasProperty("side", equalTo(side)),
-                         Matchers.<OrderState>hasProperty("price", equalTo(price)),
-                         Matchers.<OrderState>hasProperty("quantity", equalTo(quantity)),
-                         Matchers.<OrderState>hasProperty("filledQuantity", equalTo(filledQuantity)),
-                         Matchers.<OrderState>hasProperty("workingQuantity", equalTo(workingQuantity)),
-                         Matchers.<OrderState>hasProperty("timeInForce", equalTo(timeInForce)));
+            return allOf(Matchers.<OrderStateOrBuilder>hasProperty("orderId", notNullValue()),
+                    Matchers.<OrderStateOrBuilder>hasProperty("side", equalTo(side)),
+                    Matchers.<OrderStateOrBuilder>hasProperty("price", equalTo(price)),
+                    Matchers.<OrderStateOrBuilder>hasProperty("quantity", equalTo(quantity)),
+                    Matchers.<OrderStateOrBuilder>hasProperty("filledQuantity", equalTo(filledQuantity)),
+                    Matchers.<OrderStateOrBuilder>hasProperty("workingQuantity", equalTo(workingQuantity)),
+                    Matchers.<OrderStateOrBuilder>hasProperty("timeInForce", equalTo(timeInForce)));
 
         }
     }
@@ -97,11 +88,13 @@ public class ExecutionMatcher
     public static class AcceptExecutionMatcherBuilder extends AbstractExecutionMatcherBuilder<AcceptExecutionMatcherBuilder>
     {
         private Identifier identifier;
+        private String symbol;
 
         public static AcceptExecutionMatcherBuilder newBuilder()
         {
             return new AcceptExecutionMatcherBuilder();
         }
+
 
         public AcceptExecutionMatcherBuilder setIdentifier(final Identifier identifier)
         {
@@ -109,22 +102,25 @@ public class ExecutionMatcher
             return this;
         }
 
+        public AcceptExecutionMatcherBuilder setSymbol(final String symbol)
+        {
+            this.symbol = symbol;
+            return this;
+        }
+
 
         @Override
-        public Matcher<Execution> build()
+        public Matcher<AcceptExecutionOrBuilder> build()
         {
-            final Matcher<AcceptExecution> acceptExecutionMatcher =
-                    allOf(Matchers.<AcceptExecution>hasProperty("id", equalTo(identifier.getId())),
-                          Matchers.<AcceptExecution>hasProperty("attributionId", equalTo(identifier.getAttributionId())),
-                          Matchers.<AcceptExecution>hasProperty("executionId", notNullValue()),
-                          Matchers.<AcceptExecution>hasProperty("order", buildOrderStateMatcher()));
-
-            return allOf(Matchers.<Execution>hasProperty("type", equalTo(Type.ACCEPT)),
-                         Matchers.<Execution>hasProperty("accept", acceptExecutionMatcher));
+            return allOf(Matchers.<AcceptExecutionOrBuilder>hasProperty("id", equalTo(identifier.getId())),
+                         Matchers.<AcceptExecutionOrBuilder>hasProperty("attributionId", equalTo(identifier.getAttributionId())),
+                         Matchers.<AcceptExecutionOrBuilder>hasProperty("executionId", notNullValue()),
+                         Matchers.<AcceptExecutionOrBuilder>hasProperty("symbol", equalTo(symbol)),
+                         Matchers.<AcceptExecutionOrBuilder>hasProperty("order", buildOrderStateMatcher()));
         }
 
         @Override
-        public Builder<Matcher<Execution>> clear()
+        public Builder<Matcher<?>> clear()
         {
             identifier = null;
             return this;
@@ -135,6 +131,7 @@ public class ExecutionMatcher
     public static class TradeExecutionMatcherBuilder extends AbstractExecutionMatcherBuilder<TradeExecutionMatcherBuilder>
     {
         private Identifier identifier;
+        private String symbol;
         private long tradePrice;
         private long tradeQuantity;
 
@@ -148,6 +145,13 @@ public class ExecutionMatcher
             this.identifier = identifier;
             return this;
         }
+
+        public TradeExecutionMatcherBuilder setSymbol(final String symbol)
+        {
+            this.symbol = symbol;
+            return this;
+        }
+
 
         public TradeExecutionMatcherBuilder setTradePrice(final long tradePrice)
         {
@@ -163,22 +167,20 @@ public class ExecutionMatcher
 
 
         @Override
-        public Matcher<Execution> build()
+        @SuppressWarnings("unchecked")
+        public Matcher<TradeExecutionOrBuilder> build()
         {
-            final Matcher<TradeExecution> tradeExecutionMatcher =
-                    allOf(Matchers.<TradeExecution>hasProperty("id", equalTo(identifier.getId())),
-                          Matchers.<TradeExecution>hasProperty("attributionId", equalTo(identifier.getAttributionId())),
-                          Matchers.<TradeExecution>hasProperty("executionId", notNullValue()),
-                          Matchers.<TradeExecution>hasProperty("order", buildOrderStateMatcher()),
-                          Matchers.<TradeExecution>hasProperty("tradePrice", equalTo(tradePrice)),
-                          Matchers.<TradeExecution>hasProperty("tradeQuantity", equalTo(tradeQuantity)));
-
-            return allOf(Matchers.<Execution>hasProperty("type", equalTo(Type.TRADE)),
-                         Matchers.<Execution>hasProperty("trade", tradeExecutionMatcher));
+            return allOf(Matchers.<TradeExecutionOrBuilder>hasProperty("id", equalTo(identifier.getId())),
+                         Matchers.<TradeExecutionOrBuilder>hasProperty("attributionId", equalTo(identifier.getAttributionId())),
+                         Matchers.<TradeExecutionOrBuilder>hasProperty("executionId", notNullValue()),
+                         Matchers.<TradeExecutionOrBuilder>hasProperty("symbol", equalTo(symbol)),
+                         Matchers.<TradeExecutionOrBuilder>hasProperty("order", buildOrderStateMatcher()),
+                         Matchers.<TradeExecutionOrBuilder>hasProperty("tradePrice", equalTo(tradePrice)),
+                         Matchers.<TradeExecutionOrBuilder>hasProperty("tradeQuantity", equalTo(tradeQuantity)));
         }
 
         @Override
-        public Builder<Matcher<Execution>> clear()
+        public Builder<Matcher<?>> clear()
         {
             identifier = null;
             return this;
@@ -188,6 +190,7 @@ public class ExecutionMatcher
     public static class CancelExecutionMatcherBuilder extends AbstractExecutionMatcherBuilder<CancelExecutionMatcherBuilder>
     {
         private Identifier identifier;
+        private String symbol;
         private String cancelId;
 
         public static CancelExecutionMatcherBuilder newBuilder()
@@ -201,6 +204,12 @@ public class ExecutionMatcher
             return this;
         }
 
+        public CancelExecutionMatcherBuilder setSymbol(final String symbol)
+        {
+            this.symbol = symbol;
+            return this;
+        }
+
         public CancelExecutionMatcherBuilder setCancelId(final String cancelId)
         {
             this.cancelId = cancelId;
@@ -208,21 +217,19 @@ public class ExecutionMatcher
         }
 
         @Override
-        public Matcher<Execution> build()
+        public Matcher<CancelExecutionOrBuilder> build()
         {
-            final Matcher<CancelExecution> cancelExecutionMatcher =
-                    allOf(Matchers.<CancelExecution>hasProperty("id", equalTo(identifier.getId())),
-                          Matchers.<CancelExecution>hasProperty("attributionId", equalTo(identifier.getAttributionId())),
-                          Matchers.<CancelExecution>hasProperty("executionId", notNullValue()),
-                          Matchers.<CancelExecution>hasProperty("cancelId", equalTo(cancelId)),
-                          Matchers.<CancelExecution>hasProperty("order", buildOrderStateMatcher()));
 
-            return allOf(Matchers.<Execution>hasProperty("type", equalTo(Type.CANCEL)),
-                         Matchers.<Execution>hasProperty("cancel", cancelExecutionMatcher));
+            return allOf(Matchers.<CancelExecutionOrBuilder>hasProperty("id", equalTo(identifier.getId())),
+                         Matchers.<CancelExecutionOrBuilder>hasProperty("attributionId", equalTo(identifier.getAttributionId())),
+                         Matchers.<CancelExecutionOrBuilder>hasProperty("executionId", notNullValue()),
+                         Matchers.<CancelExecutionOrBuilder>hasProperty("symbol", equalTo(symbol)),
+                         Matchers.<CancelExecutionOrBuilder>hasProperty("cancelId", equalTo(cancelId)),
+                         Matchers.<CancelExecutionOrBuilder>hasProperty("order", buildOrderStateMatcher()));
         }
 
         @Override
-        public Builder<Matcher<Execution>> clear()
+        public Builder<Matcher<?>> clear()
         {
             identifier = null;
             return this;
@@ -232,6 +239,7 @@ public class ExecutionMatcher
     public static class ReplaceExecutionMatcherBuilder extends AbstractExecutionMatcherBuilder<ReplaceExecutionMatcherBuilder>
     {
         private Identifier identifier;
+        private String symbol;
         private String cancelId;
         private long replacePrice;
         private long replaceQuantity;
@@ -247,6 +255,11 @@ public class ExecutionMatcher
             return this;
         }
 
+        public ReplaceExecutionMatcherBuilder setSymbol(final String symbol)
+        {
+            this.symbol = symbol;
+            return this;
+        }
 
         public ReplaceExecutionMatcherBuilder setCancelId(final String cancelId)
         {
@@ -267,38 +280,35 @@ public class ExecutionMatcher
         }
 
         @Override
-        public Matcher<Execution> build()
+        @SuppressWarnings("unchecked")
+        public Matcher<ReplaceExecutionOrBuilder> build()
         {
-            final Matcher<ReplaceExecution> replaceExecutionMatcher =
-                    allOf(Matchers.<ReplaceExecution>hasProperty("id", equalTo(identifier.getId())),
-                          Matchers.<ReplaceExecution>hasProperty("attributionId", equalTo(identifier.getAttributionId())),
-                          Matchers.<ReplaceExecution>hasProperty("executionId", notNullValue()),
-                          Matchers.<ReplaceExecution>hasProperty("cancelId", equalTo(cancelId)),
-                          Matchers.<ReplaceExecution>hasProperty("cancelOrder", buildOrderStateMatcher()),
-                          Matchers.<ReplaceExecution>hasProperty("replaceOrder", buildReplaceOrderStateMatcher()));
-
-            return allOf(Matchers.<Execution>hasProperty("type", equalTo(Type.REPLACE)),
-                         Matchers.<Execution>hasProperty("replace", replaceExecutionMatcher));
+            return allOf(Matchers.<ReplaceExecutionOrBuilder>hasProperty("id", equalTo(identifier.getId())),
+                         Matchers.<ReplaceExecutionOrBuilder>hasProperty("attributionId", equalTo(identifier.getAttributionId())),
+                         Matchers.<ReplaceExecutionOrBuilder>hasProperty("executionId", notNullValue()),
+                         Matchers.<ReplaceExecutionOrBuilder>hasProperty("symbol", equalTo(symbol)),
+                         Matchers.<ReplaceExecutionOrBuilder>hasProperty("cancelId", equalTo(cancelId)),
+                         Matchers.<ReplaceExecutionOrBuilder>hasProperty("cancelOrder", buildOrderStateMatcher()),
+                         Matchers.<ReplaceExecutionOrBuilder>hasProperty("replaceOrder", buildReplaceOrderStateMatcher()));
         }
 
         @Override
-        public Builder<Matcher<Execution>> clear()
+        public Builder<Matcher<?>> clear()
         {
             identifier = null;
             return this;
         }
 
         @SuppressWarnings("unchecked")
-        private Matcher<OrderState> buildReplaceOrderStateMatcher()
+        private Matcher<OrderStateOrBuilder> buildReplaceOrderStateMatcher()
         {
-            return allOf(Matchers.<OrderState>hasProperty("orderId", notNullValue()),
-                         Matchers.<OrderState>hasProperty("symbol", equalTo(symbol)),
-                         Matchers.<OrderState>hasProperty("side", equalTo(side)),
-                         Matchers.<OrderState>hasProperty("price", equalTo(replacePrice)),
-                         Matchers.<OrderState>hasProperty("quantity", equalTo(replaceQuantity)),
-                         Matchers.<OrderState>hasProperty("filledQuantity", equalTo(filledQuantity)),
-                         Matchers.<OrderState>hasProperty("workingQuantity", equalTo(replaceQuantity - filledQuantity)),
-                         Matchers.<OrderState>hasProperty("timeInForce", equalTo(timeInForce)));
+            return allOf(Matchers.<OrderStateOrBuilder>hasProperty("orderId", notNullValue()),
+                    Matchers.<OrderStateOrBuilder>hasProperty("side", equalTo(side)),
+                    Matchers.<OrderStateOrBuilder>hasProperty("price", equalTo(replacePrice)),
+                    Matchers.<OrderStateOrBuilder>hasProperty("quantity", equalTo(replaceQuantity)),
+                    Matchers.<OrderStateOrBuilder>hasProperty("filledQuantity", equalTo(filledQuantity)),
+                    Matchers.<OrderStateOrBuilder>hasProperty("workingQuantity", equalTo(replaceQuantity - filledQuantity)),
+                    Matchers.<OrderStateOrBuilder>hasProperty("timeInForce", equalTo(timeInForce)));
         }
 
     }
@@ -306,6 +316,7 @@ public class ExecutionMatcher
     public static class StatusExecutionMatcherBuilder extends AbstractExecutionMatcherBuilder<StatusExecutionMatcherBuilder>
     {
         private Identifier identifier;
+        private String symbol;
         private String statusId;
 
         public static StatusExecutionMatcherBuilder newBuilder()
@@ -319,6 +330,12 @@ public class ExecutionMatcher
             return this;
         }
 
+        public StatusExecutionMatcherBuilder setSymbol(final String symbol)
+        {
+            this.symbol = symbol;
+            return this;
+        }
+
         public StatusExecutionMatcherBuilder setStatusId(final String statusId)
         {
             this.statusId = statusId;
@@ -326,20 +343,17 @@ public class ExecutionMatcher
         }
 
         @Override
-        public Matcher<Execution> build()
+        public Matcher<StatusExecutionOrBuilder> build()
         {
-            final Matcher<CancelExecution> statusExecutionMatcher =
-                    allOf(Matchers.<CancelExecution>hasProperty("id", equalTo(identifier.getId())),
-                          Matchers.<CancelExecution>hasProperty("attributionId", equalTo(identifier.getAttributionId())),
-                          Matchers.<CancelExecution>hasProperty("statusId", equalTo(statusId)),
-                          Matchers.<CancelExecution>hasProperty("order", buildOrderStateMatcher()));
-
-            return allOf(Matchers.<Execution>hasProperty("type", equalTo(Type.STATUS)),
-                         Matchers.<Execution>hasProperty("status", statusExecutionMatcher));
+            return allOf(Matchers.<StatusExecutionOrBuilder>hasProperty("id", equalTo(identifier.getId())),
+                         Matchers.<StatusExecutionOrBuilder>hasProperty("attributionId", equalTo(identifier.getAttributionId())),
+                         Matchers.<StatusExecutionOrBuilder>hasProperty("symbol", equalTo(symbol)),
+                         Matchers.<StatusExecutionOrBuilder>hasProperty("statusId", equalTo(statusId)),
+                         Matchers.<StatusExecutionOrBuilder>hasProperty("order", buildOrderStateMatcher()));
         }
 
         @Override
-        public Builder<Matcher<Execution>> clear()
+        public Builder<Matcher<?>> clear()
         {
             identifier = null;
             return this;

@@ -1,6 +1,7 @@
 package ayizan.domain.orderbook.limit;
 
-import ayizan.domain.Orders.RejectReason;
+import ayizan.domain.Executions.RejectReason;
+import ayizan.domain.Instruments.InstrumentSpecification;
 import ayizan.domain.Orders.Side;
 import ayizan.domain.Orders.TimeInForce;
 import ayizan.domain.orderbook.ExecutionIdGenerator;
@@ -21,31 +22,37 @@ public class LimitOrderBook implements OrderBook
     private final Map<Identifier, LimitOrder> limitOrdersByIdentifier;
     private final Map<Long, Limit> bidsByPrice;
     private final Map<Long, Limit> asksByPrice;
-
-    private Limit bestBid;
-    private Limit bestAsk;
+    private final InstrumentSpecification instrument;
 
     private enum State { ACCEPTING, EXECUTING, ADDING, CANCELING, WAITING }
 
+    private Limit bestBid;
+    private Limit bestAsk;
     private LimitOrder acceptLimitOrder;
     private LimitOrder cancelLimitOrder;
     private State state;
 
-    public LimitOrderBook()
+    public LimitOrderBook(final InstrumentSpecification instrumentSpecification)
     {
-        limitOrdersByIdentifier = new HashMap<Identifier, LimitOrder>();
-        bidsByPrice = new HashMap<Long, Limit>();
-        asksByPrice = new HashMap<Long, Limit>();
-        orderIdGenerator = new OrderIdGenerator();
-        executionIdGenerator = new ExecutionIdGenerator();
-        acceptLimitOrder = new LimitOrder();
+        this.limitOrdersByIdentifier = new HashMap<Identifier, LimitOrder>();
+        this.bidsByPrice = new HashMap<Long, Limit>();
+        this.asksByPrice = new HashMap<Long, Limit>();
+        this.orderIdGenerator = new OrderIdGenerator();
+        this.executionIdGenerator = new ExecutionIdGenerator();
+        this.acceptLimitOrder = new LimitOrder();
+        this.state = State.WAITING;
 
-        state = State.WAITING;
+        this.instrument = instrumentSpecification;
     }
 
     public String getSymbol()
     {
-        return "???";
+        return instrument.getSymbol();
+    }
+
+    public InstrumentSpecification getInstrument()
+    {
+        return instrument;
     }
 
     public boolean isOpen()

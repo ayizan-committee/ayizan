@@ -1,6 +1,6 @@
 package ayizan.domain.orderbook;
 
-import ayizan.util.IdGenerator;
+import ayizan.domain.IdGenerator;
 
 public class ExecutionIdGenerator implements IdGenerator<Long>
 {

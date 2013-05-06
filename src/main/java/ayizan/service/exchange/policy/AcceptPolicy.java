@@ -5,7 +5,7 @@ import ayizan.domain.Orders.TimeInForce;
 import ayizan.domain.Identifier;
 import ayizan.domain.orderbook.Order;
 import ayizan.domain.orderbook.OrderBook;
-import ayizan.service.exchange.ExecutionPublisher;
+import ayizan.service.exchange.Exchange.ExecutionPublisher;
 
 public abstract class AcceptPolicy<T extends AcceptPolicy<T>>
 {
@@ -40,7 +40,7 @@ public abstract class AcceptPolicy<T extends AcceptPolicy<T>>
                             final TimeInForce timeInForce)
         {
             final Order order = orderBook.accept(identifier, side, price, quantity, 0, timeInForce);
-            executionPublisher.publishAcceptExecution(orderBook.commit(), order);
+            executionPublisher.publishAcceptExecution(orderBook.commit(), orderBook.getSymbol(), order);
             return order;
         }
     }
@@ -64,7 +64,7 @@ public abstract class AcceptPolicy<T extends AcceptPolicy<T>>
             if(cancelOrder != null) {
 
                 final Order replaceOrder = orderBook.accept(identifier, cancelOrder.getSide(), price, quantity, cancelOrder.getFilledQuantity(), cancelOrder.getTimeInForce());
-                executionPublisher.publishReplaceExecution(orderBook.commit(), cancelOrder.cancel(), replaceOrder);
+                executionPublisher.publishReplaceExecution(orderBook.commit(), orderBook.getSymbol(), cancelOrder.cancel(), replaceOrder);
                 return replaceOrder;
             }
             return null;

@@ -3,7 +3,7 @@ package ayizan.service.exchange.policy;
 import ayizan.domain.Identifier;
 import ayizan.domain.orderbook.Order;
 import ayizan.domain.orderbook.OrderBook;
-import ayizan.service.exchange.ExecutionPublisher;
+import ayizan.service.exchange.Exchange.ExecutionPublisher;
 
 public abstract class CancelPolicy<T extends CancelPolicy>
 {
@@ -57,7 +57,7 @@ public abstract class CancelPolicy<T extends CancelPolicy>
         {
             if(order != null && !order.isCompleted()) {
                 order.cancel();
-                executionPublisher.publishCancelExecution(orderBook.commit(), identifier, order);
+                executionPublisher.publishCancelExecution(orderBook.commit(), orderBook.getSymbol(), identifier, order);
                 return true;
             }
             return false;

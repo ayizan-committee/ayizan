@@ -1,5 +1,6 @@
 package ayizan.domain.orderbook.limit;
 
+import ayizan.domain.Instruments.InstrumentSpecification;
 import ayizan.domain.Orders.Side;
 import ayizan.domain.Orders.TimeInForce;
 import ayizan.domain.Identifier;
@@ -29,6 +30,13 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 @RunWith(MockitoJUnitRunner.class)
 public class LimitOrderBookUnitTest
 {
+    private static final InstrumentSpecification INSTRUMENT = InstrumentSpecification.newBuilder().
+            setSymbol("XXX.GOOG").
+            setTickSize(0.01).
+            setLotSize(1).
+            setMultiplier(1).
+            build();
+
     private static final Identifier ID_1 = new Identifier("1", 1);
     private static final Identifier ID_2 = new Identifier("2", 2);
     private static final Identifier ID_3 = new Identifier("3", 3);
@@ -41,7 +49,7 @@ public class LimitOrderBookUnitTest
     @Before
     public void setUp()
     {
-        limitOrderBook = new LimitOrderBook();
+        limitOrderBook = new LimitOrderBook(INSTRUMENT);
     }
 
     @Test
@@ -79,9 +87,6 @@ public class LimitOrderBookUnitTest
 
         assertThat(order, equalsBuyOrder(100, 1.0).setCancelledQuantity(1.0).build());
     }
-
-
-
 
     @Test
     public void buyOrdersInPriceTimePriorityOrder()

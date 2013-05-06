@@ -1,6 +1,7 @@
 package ayizan.domain.orderbook;
 
 import ayizan.domain.Identifier;
+import ayizan.domain.Instruments.InstrumentSpecification;
 import ayizan.domain.Orders.Side;
 import ayizan.domain.Orders.TimeInForce;
 
@@ -8,11 +9,12 @@ public interface OrderBook
 {
     public interface Matcher
     {
-
         boolean next(Order order);
     }
 
     String getSymbol();
+
+    InstrumentSpecification getInstrument();
 
     boolean isOpen();
 

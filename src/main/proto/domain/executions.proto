@@ -1,0 +1,95 @@
+package ayizan;
+option java_package = "ayizan.domain";
+option java_outer_classname = "Executions";
+
+import "domain/orders.proto";
+
+enum RejectReason
+{
+    NONE = 0;
+    ORDER_BOOK_CLOSED = 1;
+    UNKNOWN_INSTRUMENT = 2;
+    UNKNOWN_ORDER = 3;
+    INVALID_PRICE = 4;
+    INVALID_QUANTITY = 5;
+}
+
+message AcceptExecution
+{
+    required int64 timestamp = 1;
+    required string id = 2;
+    required int32 attributionId = 3;
+    required string symbol = 4;
+
+
+    required int64 executionId = 5;
+    required OrderState order = 6;
+
+    optional RejectReason rejectReason = 7 [ default = NONE ];
+}
+
+message TradeExecution
+{
+    required int64 timestamp = 1;
+    required string id = 2;
+    required int32 attributionId = 3;
+    required string symbol = 4;
+
+    required int64 executionId = 5;
+    required OrderState order = 6;
+    required int64 tradePrice = 7;
+    required int64 tradeQuantity = 8;
+}
+
+message ReplaceExecution
+{
+    required int64 timestamp = 1;
+    required string id = 2;
+    required int32 attributionId = 3;
+    required string symbol = 4;
+
+    optional int64 executionId = 5;
+    required string cancelId = 6;
+    optional OrderState cancelOrder = 7;
+    optional OrderState replaceOrder = 8;
+
+    optional RejectReason rejectReason = 9 [ default = NONE ];
+}
+
+message CancelExecution
+{
+    required int64 timestamp = 1;
+    required string id = 2;
+    required int32 attributionId = 3;
+    required string symbol = 4;
+
+    optional int64 executionId = 5;
+    required string cancelId = 6;
+    optional OrderState order = 7;
+
+    optional RejectReason rejectReason = 8 [ default = NONE ];
+}
+
+message StatusExecution
+{
+    required int64 timestamp = 1;
+    required string id = 2;
+    required int32 attributionId = 3;
+    required string symbol = 4;
+
+    required string statusId = 5;
+    required OrderState order = 6;
+
+    optional RejectReason rejectReason = 7 [ default = NONE ];
+}
+
+message OrderState
+{
+    required int64 orderId = 1;
+    required Side side = 2;
+    optional int64 price = 3;
+    required int64 quantity = 4;
+    required int64 workingQuantity = 5;
+    required int64 filledQuantity = 6;
+    required TimeInForce timeInForce = 7;
+}
